@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PostgreSQL Config Calculator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 40px 0;
+        }
+
+        .header h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 15px;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            color: rgba(255,255,255,0.9);
+            font-weight: 300;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            align-items: start;
+        }
+
+        .input-section {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .input-section h2 {
+            font-size: 1.8rem;
+            color: #333;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-grid {
+            display: grid;
+            gap: 20px;
+        }
+
+        .form-group {
+            position: relative;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 500;
+            color: #555;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            width: 100%;
+            padding: 15px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-secondary:hover {
+            background: #218838;
+            transform: translateY(-1px);
+        }
+
+        .results-section {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+        }
+
+        .results-section.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .results-section h2 {
+            font-size: 1.8rem;
+            color: #333;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .config-group {
+            margin-bottom: 30px;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+        }
+
+        .config-group h3 {
+            color: #667eea;
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .config-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .config-item:last-child {
+            border-bottom: none;
+        }
+
+        .config-name {
+            font-weight: 500;
+            color: #495057;
+        }
+
+        .config-value {
+            font-weight: 600;
+            color: #28a745;
+            font-family: 'Courier New', monospace;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2.5rem;
+            }
+            
+            .input-section, .results-section {
+                padding: 20px;
+            }
+        }
+
+        .floating-shapes {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .shape {
+            position: absolute;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            animation: float 20s infinite linear;
+        }
+
+        .shape:nth-child(1) {
+            width: 80px;
+            height: 80px;
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .shape:nth-child(2) {
+            width: 120px;
+            height: 120px;
+            left: 80%;
+            animation-delay: 5s;
+        }
+
+        .shape:nth-child(3) {
+            width: 60px;
+            height: 60px;
+            left: 50%;
+            animation-delay: 10s;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+            }
+            100% {
+                transform: translateY(-100px) rotate(360deg);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="floating-shapes">
+        <div class="shape"></div>
+        <div class="shape"></div>
+        <div class="shape"></div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-database"></i> PostgreSQL Configuration Calculator</h1>
+            <p>Generate optimized PostgreSQL settings based on your server specifications</p>
+        </div>
+
+        <div class="main-content">
+            <div class="input-section">
+                <h2><i class="fas fa-server"></i> Server Specifications</h2>
+                <form id="configForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="vcpu"><i class="fas fa-microchip"></i> vCPU Count</label>
+                            <input type="number" id="vcpu" name="vcpu" min="1" max="128" required placeholder="e.g., 8">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="ram"><i class="fas fa-memory"></i> RAM (GB)</label>
+                            <input type="number" id="ram" name="ram" min="1" step="0.1" required placeholder="e.g., 16">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="concurrency"><i class="fas fa-users"></i> Expected Concurrency</label>
+                            <input type="number" id="concurrency" name="concurrency" min="1" max="10000" required placeholder="e.g., 100">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="workload"><i class="fas fa-chart-line"></i> Workload Type</label>
+                            <select id="workload" name="workload" style="width: 100%; padding: 15px 20px; border: 2px solid #e1e5e9; border-radius: 12px; font-size: 1rem; background: white;">
+                                <option value="mixed">Mixed (OLTP + Analytics)</option>
+                                <option value="oltp">OLTP (High Concurrency)</option>
+                                <option value="analytics">Analytics (Data Warehouse)</option>
+                                <option value="web">Web Application</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn-primary">
+                        <i class="fas fa-calculator"></i> Calculate Configuration
+                    </button>
+                </form>
+            </div>
+
+            <div class="results-section" id="results">
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Calculating optimal configuration...</p>
+                </div>
+                
+                <div id="configResults" style="display: none;">
+                    <h2><i class="fas fa-cogs"></i> Recommended Configuration</h2>
+                    <div id="configContent"></div>
+                    <button type="button" class="btn-secondary" id="downloadBtn">
+                        <i class="fas fa-download"></i> Download as CSV
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentConfig = null;
+
+        document.getElementById('configForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const vcpu = parseInt(document.getElementById('vcpu').value);
+            const ram = parseFloat(document.getElementById('ram').value);
+            const concurrency = parseInt(document.getElementById('concurrency').value);
+            const workload = document.getElementById('workload').value;
+            
+            // Show loading
+            document.getElementById('results').classList.add('show');
+            document.getElementById('loading').classList.add('show');
+            document.getElementById('configResults').style.display = 'none';
+            
+            // Simulate API call delay
+            setTimeout(() => {
+                calculateConfiguration(vcpu, ram, concurrency, workload);
+            }, 1000);
+        });
+
+        function calculateConfiguration(vcpu, ram, concurrency, workload) {
+            const ramMB = ram * 1024;
+            const ramGB = ram;
+            
+            // Base calculations with workload adjustments
+            let workloadMultiplier = getWorkloadMultiplier(workload);
+            
+            // Connection settings
+            const max_connections = Math.min(concurrency + 20, 1000);
+            const superuser_reserved_connections = Math.max(3, Math.min(10, Math.floor(max_connections * 0.1)));
+            
+            // Memory settings
+            const shared_buffers = Math.floor(ramMB * workloadMultiplier.shared_buffers);
+            const work_mem = Math.max(4, Math.floor((ramMB * 0.25) / max_connections));
+            const maintenance_work_mem = Math.floor(ramMB * workloadMultiplier.maintenance_work_mem);
+            const effective_cache_size = Math.floor(ramMB * 0.75);
+            
+            // WAL and Checkpoint settings
+            const wal_buffers = Math.min(64, Math.max(16, Math.floor(shared_buffers / 32)));
+            const max_wal_size = Math.max(1024, Math.floor(ramMB * 0.1));
+            const min_wal_size = Math.floor(max_wal_size / 4);
+            const checkpoint_completion_target = workloadMultiplier.checkpoint_target;
+            const checkpoint_timeout = workloadMultiplier.checkpoint_timeout;
+            
+            // Parallelism settings
+            const max_worker_processes = Math.min(vcpu * 2, 64);
+            const max_parallel_workers = Math.min(vcpu, max_worker_processes);
+            const max_parallel_workers_per_gather = Math.min(Math.floor(vcpu / 2), 16);
+            
+            // Autovacuum settings
+            const autovacuum = workloadMultiplier.autovacuum;
+            const autovacuum_max_workers = Math.min(10, Math.max(3, Math.floor(vcpu / 2)));
+            const autovacuum_naptime = workloadMultiplier.autovacuum_naptime;
+            const autovacuum_vacuum_cost_limit = workloadMultiplier.vacuum_cost_limit;
+            
+            currentConfig = {
+                // Connection
+                max_connections,
+                superuser_reserved_connections,
+                
+                // Memory
+                shared_buffers: `${shared_buffers}MB`,
+                work_mem: `${work_mem}MB`,
+                maintenance_work_mem: `${maintenance_work_mem}MB`,
+                effective_cache_size: `${effective_cache_size}MB`,
+                
+                // WAL and Checkpoint
+                wal_buffers: `${wal_buffers}MB`,
+                max_wal_size: `${max_wal_size}MB`,
+                min_wal_size: `${min_wal_size}MB`,
+                checkpoint_completion_target,
+                checkpoint_timeout,
+                
+                // Parallelism
+                max_worker_processes,
+                max_parallel_workers,
+                max_parallel_workers_per_gather,
+                
+                // Autovacuum
+                autovacuum,
+                autovacuum_max_workers,
+                autovacuum_naptime,
+                autovacuum_vacuum_cost_limit
+            };
+            
+            displayResults(currentConfig);
+        }
+
+        function getWorkloadMultiplier(workload) {
+            const multipliers = {
+                mixed: {
+                    shared_buffers: 0.25,
+                    maintenance_work_mem: 0.05,
+                    checkpoint_target: 0.9,
+                    checkpoint_timeout: '15min',
+                    autovacuum: 'on',
+                    autovacuum_naptime: '1min',
+                    vacuum_cost_limit: 200
+                },
+                oltp: {
+                    shared_buffers: 0.2,
+                    maintenance_work_mem: 0.03,
+                    checkpoint_target: 0.7,
+                    checkpoint_timeout: '5min',
+                    autovacuum: 'on',
+                    autovacuum_naptime: '30s',
+                    vacuum_cost_limit: 400
+                },
+                analytics: {
+                    shared_buffers: 0.4,
+                    maintenance_work_mem: 0.1,
+                    checkpoint_target: 0.9,
+                    checkpoint_timeout: '30min',
+                    autovacuum: 'off',
+                    autovacuum_naptime: '10min',
+                    vacuum_cost_limit: 2000
+                },
+                web: {
+                    shared_buffers: 0.25,
+                    maintenance_work_mem: 0.04,
+                    checkpoint_target: 0.8,
+                    checkpoint_timeout: '10min',
+                    autovacuum: 'on',
+                    autovacuum_naptime: '1min',
+                    vacuum_cost_limit: 300
+                }
+            };
+            
+            return multipliers[workload] || multipliers.mixed;
+        }
+
+        function displayResults(config) {
+            const configGroups = [
+                {
+                    title: 'Connection Settings',
+                    icon: 'fas fa-plug',
+                    items: [
+                        { name: 'max_connections', value: config.max_connections },
+                        { name: 'superuser_reserved_connections', value: config.superuser_reserved_connections }
+                    ]
+                },
+                {
+                    title: 'Memory Settings',
+                    icon: 'fas fa-memory',
+                    items: [
+                        { name: 'shared_buffers', value: config.shared_buffers },
+                        { name: 'work_mem', value: config.work_mem },
+                        { name: 'maintenance_work_mem', value: config.maintenance_work_mem },
+                        { name: 'effective_cache_size', value: config.effective_cache_size }
+                    ]
+                },
+                {
+                    title: 'WAL and Checkpoint',
+                    icon: 'fas fa-save',
+                    items: [
+                        { name: 'wal_buffers', value: config.wal_buffers },
+                        { name: 'max_wal_size', value: config.max_wal_size },
+                        { name: 'min_wal_size', value: config.min_wal_size },
+                        { name: 'checkpoint_completion_target', value: config.checkpoint_completion_target },
+                        { name: 'checkpoint_timeout', value: config.checkpoint_timeout }
+                    ]
+                },
+                {
+                    title: 'Parallelism',
+                    icon: 'fas fa-sitemap',
+                    items: [
+                        { name: 'max_worker_processes', value: config.max_worker_processes },
+                        { name: 'max_parallel_workers', value: config.max_parallel_workers },
+                        { name: 'max_parallel_workers_per_gather', value: config.max_parallel_workers_per_gather }
+                    ]
+                },
+                {
+                    title: 'Autovacuum',
+                    icon: 'fas fa-broom',
+                    items: [
+                        { name: 'autovacuum', value: config.autovacuum },
+                        { name: 'autovacuum_max_workers', value: config.autovacuum_max_workers },
+                        { name: 'autovacuum_naptime', value: config.autovacuum_naptime },
+                        { name: 'autovacuum_vacuum_cost_limit', value: config.autovacuum_vacuum_cost_limit }
+                    ]
+                }
+            ];
+            
+            let html = '';
+            configGroups.forEach(group => {
+                html += `
+                    <div class="config-group">
+                        <h3><i class="${group.icon}"></i> ${group.title}</h3>
+                        ${group.items.map(item => `
+                            <div class="config-item">
+                                <span class="config-name">${item.name}</span>
+                                <span class="config-value">${item.value}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            });
+            
+            document.getElementById('configContent').innerHTML = html;
+            document.getElementById('loading').classList.remove('show');
+            document.getElementById('configResults').style.display = 'block';
+        }
+
+        document.getElementById('downloadBtn').addEventListener('click', function() {
+            if (!currentConfig) return;
+            
+            const csvContent = generateCSV(currentConfig);
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'postgresql_config.csv');
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+
+        function generateCSV(config) {
+            let csv = 'Parameter,Value,Category\n';
+            
+            const categories = [
+                { name: 'Connection', params: ['max_connections', 'superuser_reserved_connections'] },
+                { name: 'Memory', params: ['shared_buffers', 'work_mem', 'maintenance_work_mem', 'effective_cache_size'] },
+                { name: 'WAL and Checkpoint', params: ['wal_buffers', 'max_wal_size', 'min_wal_size', 'checkpoint_completion_target', 'checkpoint_timeout'] },
+                { name: 'Parallelism', params: ['max_worker_processes', 'max_parallel_workers', 'max_parallel_workers_per_gather'] },
+                { name: 'Autovacuum', params: ['autovacuum', 'autovacuum_max_workers', 'autovacuum_naptime', 'autovacuum_vacuum_cost_limit'] }
+            ];
+            
+            categories.forEach(category => {
+                category.params.forEach(param => {
+                    if (config[param] !== undefined) {
+                        csv += `${param},${config[param]},${category.name}\n`;
+                    }
+                });
+            });
+            
+            return csv;
+        }
+    </script>
+</body>
+</html>
